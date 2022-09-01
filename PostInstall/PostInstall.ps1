@@ -385,10 +385,8 @@ function install-windows-features {
     ProgressWriter -Status "Installing Zoom" -PercentComplete $PercentComplete
     start-process -filepath "C:\Windows\System32\msiexec.exe" -ArgumentList '/qn /i "C:\Hovercast\Apps\ZoomInstallerFull.msi"' -Wait
     ProgressWriter -Status "Installing vMix25" -PercentComplete $PercentComplete
-    Start-Process -FilePath "C:\Hovercast\Apps\vmix25.exe" -ArgumentList '/S' -wait
+    Start-Process -FilePath "C:\Hovercast\Apps\vmix25.exe" -ArgumentList '/verysilent' -wait
     ProgressWriter -Status "Installing NDI Tools" -PercentComplete $PercentComplete
-    Start-Process -FilePath "C:\Hovercast\Apps\NDI5.exe" -ArgumentList '/S' -wait
-    ProgressWriter -Status "Installing OBS" -PercentComplete $PercentComplete
     Start-Process -FilePath "C:\Hovercast\Apps\OBS.exe" -ArgumentList '/S' -wait
     ProgressWriter -Status "Cleaning up" -PercentComplete $PercentComplete
     Remove-Item -Path C:\Hovercast\DirectX -force -Recurse 
@@ -497,19 +495,19 @@ function clean-aws {
     }
 
 function nginx {
-    Expand-Archive -Path "$path\HovercastTemp\PreInstall\nginx.zip" -DestinationPath "C:\Hovercast\Apps\nginx"
+    New-Item -Path "C:\Hovercast\Apps\nginx" -ItemType Directory| Out-Null
+    Expand-Archive -Path "C:\Users\hovercast\Desktop\HovercastTemp\PreInstall\nginx.zip" -DestinationPath "C:\Hovercast\Apps\nginx"
     cmd.exe /c  "C:\Hovercast\Apps\nginx\windows firewall\open.firewall.ports_run.as.admin.bat"
-    $sta = New-ScheduledTaskAction -Execute "c:\hovercast\apps\autostart.bat"
-    $Stt = New-ScheduledTaskTrigger -AtLogon
-    Register-ScheduledTask Task01 -Action $Sta -Trigger $Stt
+    cmd.exe /c  "C:\Hovercast\Apps\autostart.bat"
+    $action = New-ScheduledTaskAction -Execute 'C:\Hovercast\Apps\autostart.bat'
+    $trigger =  New-ScheduledTaskTrigger -AtLogOn -User $env:USERNAME 
+    Register-ScheduledTask -Action $action -Trigger $trigger -TaskName "startNginX" -RunLevel Highest
+    Write-Output "Successfully Created"
 }
 
 
-
-function AudioInstall {
+function AudioInstall0 {
     New-Item -Path "C:\Hovercast\Apps\VBCable0" -ItemType Directory| Out-Null
-    New-Item -Path "C:\Hovercast\Apps\VBCable1" -ItemType Directory| Out-Null
-    New-Item -Path "C:\Hovercast\Apps\VBCable2" -ItemType Directory| Out-Null
     Expand-Archive -Path "$path\HovercastTemp\PreInstall\VBCABLE_Driver_Pack43.zip" -DestinationPath "C:\Hovercast\Apps\VBCable0"
     $pathToCatFile = "C:\Hovercast\Apps\VBCable0\vbaudio_cable64_win7.cat"
     $FullCertificateExportPath = "C:\Hovercast\Apps\VBCable0\VBCert.cer"
@@ -521,8 +519,12 @@ function AudioInstall {
     [System.IO.File]::WriteAllBytes($VB.CertName, $VB.Cert.Export($VB.ExportType))
     Import-Certificate -CertStoreLocation Cert:\LocalMachine\TrustedPublisher -FilePath $VB.CertName | Out-Null
     Start-Process -FilePath "C:\Hovercast\Apps\VBCable\VBCABLE_Setup_x64.exe" -ArgumentList '-i','-h' -wait
-    
+    Set-Service -Name audiosrv -StartupType Automatic
+    Start-Service -Name audiosrv
+    }
 
+function AudioInstall1 {
+    New-Item -Path "C:\Hovercast\Apps\VBCable1" -ItemType Directory| Out-Null
     Expand-Archive -Path "$path\HovercastTemp\PreInstall\VBCABLE_A_Driver_Pack43.zip" -DestinationPath "C:\Hovercast\Apps\VBCable1"
     $pathToCatFile = "C:\Hovercast\Apps\VBCable1\vbaudio_cablea_win7.cat"
     $FullCertificateExportPath = "C:\Hovercast\Apps\VBCable1\VBCert.cer"
@@ -534,8 +536,12 @@ function AudioInstall {
     [System.IO.File]::WriteAllBytes($VB.CertName, $VB.Cert.Export($VB.ExportType))
     Import-Certificate -CertStoreLocation Cert:\LocalMachine\TrustedPublisher -FilePath $VB.CertName | Out-Null
     Start-Process -FilePath "C:\Hovercast\Apps\VBCable\VBCABLE_Setup_x64.exe" -ArgumentList '-i','-h' -wait
+    Set-Service -Name audiosrv -StartupType Automatic
+    Start-Service -Name audiosrv
+}
 
-
+function AudioInstall2 {
+    New-Item -Path "C:\Hovercast\Apps\VBCable2" -ItemType Directory| Out-Null
     Expand-Archive -Path "$path\HovercastTemp\PreInstall\VBCABLE_B_Driver_Pack43.zip" -DestinationPath "C:\Hovercast\Apps\VBCable2"
     $pathToCatFile = "C:\Hovercast\Apps\VBCable1\vbaudio_cableb_win7.cat"
     $FullCertificateExportPath = "C:\Hovercast\Apps\VBCable1\VBCert.cer"
@@ -547,10 +553,10 @@ function AudioInstall {
     [System.IO.File]::WriteAllBytes($VB.CertName, $VB.Cert.Export($VB.ExportType))
     Import-Certificate -CertStoreLocation Cert:\LocalMachine\TrustedPublisher -FilePath $VB.CertName | Out-Null
     Start-Process -FilePath "C:\Hovercast\Apps\VBCable\VBCABLE_Setup_x64.exe" -ArgumentList '-i','-h' -wait
-    
     Set-Service -Name audiosrv -StartupType Automatic
     Start-Service -Name audiosrv
-    }
+}
+
 
 
 #7Zip is required to extract the Parsec-Windows.exe File
@@ -631,7 +637,9 @@ function clean-up-recent {
     }
 
 
-
+function Install-NDI-Tools {
+Start-Process -FilePath "C:\Hovercast\Apps\NDI5.exe" -ArgumentList '/verysilent' -wait
+}
 
 
 
@@ -701,8 +709,11 @@ $ScripttaskList = @(
 "Install-Gaming-Apps";
 "disable-devices";
 "InstallParsecVDD";
-"AudioInstall";
+"AudioInstall0";
+"AudioInstall1";
+"AudioInstall2";
 "Server2019Controller";
+"Install-NDI-Tools"
 )
 
 foreach ($func in $ScripttaskList) {
@@ -711,10 +722,8 @@ foreach ($func in $ScripttaskList) {
     }
 
 ProgressWriter -status "Done" -percentcomplete 100
-Write-Host "1. Open Parsec and sign in (Team machines should have automatically signed in if userdata was correct)" -ForegroundColor black -BackgroundColor Green 
-Write-Host "2. Use GPU Updater to update your GPU Drivers!" -ForegroundColor black -BackgroundColor Green 
-#Write-Host "You don't need to sign into Razer Synapse, the login box will stop appearing after a couple of reboots" -ForegroundColor black -BackgroundColor Green 
-Write-Host "You may want to change your Windows password to something simpler if the password your cloud provider gave you is super long" -ForegroundColor black -BackgroundColor Green 
+
+
 Write-host "DONE!" -ForegroundColor black -BackgroundColor Green
 if ($DontPromptPasswordUpdateGPU) {} 
 Else {pause}
