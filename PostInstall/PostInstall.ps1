@@ -1,9 +1,4 @@
-param (
-    [switch]$DontPromptPasswordUpdateGPU
-    )
-    
-
-$host.ui.RawUI.WindowTitle = "Parsec Cloud Preparation Tool"
+$host.ui.RawUI.WindowTitle = "VCR Cloud Preparation Tool"
 
 [Net.ServicePointManager]::SecurityProtocol = "tls12, tls11, tls" 
 
@@ -17,6 +12,20 @@ Function ProgressWriter {
 
 $path = [Environment]::GetFolderPath("Desktop")
 $currentusersid = Get-LocalUser "$env:USERNAME" | Select-Object SID | ft -HideTableHeaders | Out-String | ForEach-Object { $_.Trim() }
+
+
+$secure = ConvertTo-SecureString "ControlRoom!" -AsPlainText -force
+Set-LocalUser -Name "hovercast" -Password $secure
+
+$privacyRegPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\"
+Set-ItemProperty "$privacyRegPath\microphone" "value" -Value "Allow" -type String
+Set-ItemProperty "$privacyRegPath\webcam" "value" -Value "Allow" -type String
+
+$authRegPath = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon\"
+Set-ItemProperty $authRegPath "AutoAdminLogon" -Value "1" -type String
+Set-ItemProperty $authRegPath "DefaultPassword" -Value "ControlRoom!" -type String
+Set-ItemProperty $authRegPath "DefaultUsername" -Value "hovercast" -type String
+
 
 #Creating Folders and moving script files into System directories
 function setupEnvironment {
@@ -273,8 +282,6 @@ function add-gpo-modifications {
     }
 
 
-
-
 #Adds Premade Group Policu Item if existing configuration doesn't exist
 function addRegItems{
     ProgressWriter -Status "Adding Registry Items and Group Policy" -PercentComplete $PercentComplete
@@ -348,28 +355,37 @@ function download-resources {
     (New-Object System.Net.WebClient).DownloadFile("https://go.skype.com/msi-download", "C:\Hovercast\Apps\skype.msi") 
     ProgressWriter -Status "Downloading NDI5 Tools" -PercentComplete $PercentComplete
     (New-Object System.Net.WebClient).DownloadFile("https://downloads.ndi.tv/Tools/NDI%205%20Tools.exe", "C:\Hovercast\Apps\NDI5.exe") 
+    $basePath = "C:\Hovercast\temp\"
+    $latestRelease = Invoke-WebRequest https://api.github.com/repos/obsproject/obs-studio/releases/latest -Headers @{"Accept"="application/json"}
+    # The releases are returned in the format {"id":3622206,"tag_name":"hello-1.0.0.11",...}, we have to extract the tag_name.
+    $json = $latestRelease.Content | ConvertFrom-Json
+    $fileName = $json.assets.name[0]
+    $url = "https://github.com/obsproject/obs-studio/releases/latest/download/$fileName"
+    (New-Object System.Net.WebClient).DownloadFile("$URL", "C:\Hovercast\Apps\OBS.exe") 
     }
 
 #install-base-files-silently
 function install-windows-features {
     ProgressWriter -Status "Installing Chrome" -PercentComplete $PercentComplete
     start-process -filepath "C:\Windows\System32\msiexec.exe" -ArgumentList '/qn /i "C:\Hovercast\Apps\googlechromestandaloneenterprise64.msi"' -Wait
-    ProgressWriter -Status "Installing Skype" -PercentComplete $PercentComplete
-    start-process -filepath "C:\Windows\System32\msiexec.exe" -ArgumentList '/qn /i "C:\Hovercast\Apps\skype.msi"' -Wait
-    ProgressWriter -Status "Installing Zoom" -PercentComplete $PercentComplete
-    start-process -filepath "C:\Windows\System32\msiexec.exe" -ArgumentList '/qn /i "C:\Hovercast\Apps\ZoomInstallerFull.msi"' -Wait
     ProgressWriter -Status "Installing DirectX June 2010 Redist" -PercentComplete $PercentComplete
     Start-Process -FilePath "C:\Hovercast\Apps\directx_jun2010_redist.exe" -ArgumentList '/T:C:\Hovercast\DirectX /Q'-wait
-    ProgressWriter -Status "Installing vMix25" -PercentComplete $PercentComplete
-    Start-Process -FilePath "C:\Hovercast\Apps\vmix25.exe" -ArgumentList '/silent' -wait
     ProgressWriter -Status "Installing DirectX" -PercentComplete $PercentComplete
     Start-Process -FilePath "C:\Hovercast\DirectX\DXSETUP.EXE" -ArgumentList '/silent' -wait
-    ProgressWriter -Status "Installing NDI Tools" -PercentComplete $PercentComplete
-    Start-Process -FilePath "C:\Hovercast\Apps\NDI5.exe" -ArgumentList '/silent' -wait
     ProgressWriter -Status "Installing Direct Play" -PercentComplete $PercentComplete
     Install-WindowsFeature Direct-Play | Out-Null
     ProgressWriter -Status "Installing .net 3.5" -PercentComplete $PercentComplete
     Install-WindowsFeature Net-Framework-Core | Out-Null
+    ProgressWriter -Status "Installing Skype" -PercentComplete $PercentComplete
+    start-process -filepath "C:\Windows\System32\msiexec.exe" -ArgumentList '/qn /i "C:\Hovercast\Apps\skype.msi"' -Wait
+    ProgressWriter -Status "Installing Zoom" -PercentComplete $PercentComplete
+    start-process -filepath "C:\Windows\System32\msiexec.exe" -ArgumentList '/qn /i "C:\Hovercast\Apps\ZoomInstallerFull.msi"' -Wait
+    ProgressWriter -Status "Installing vMix25" -PercentComplete $PercentComplete
+    Start-Process -FilePath "C:\Hovercast\Apps\vmix25.exe" -ArgumentList '/silent' -wait
+    ProgressWriter -Status "Installing NDI Tools" -PercentComplete $PercentComplete
+    Start-Process -FilePath "C:\Hovercast\Apps\NDI5.exe" -ArgumentList '/silent' -wait
+    ProgressWriter -Status "Installing OBS" -PercentComplete $PercentComplete
+    Start-Process -FilePath "C:\Hovercast\Apps\OBS.exe" -ArgumentList '/silent' -wait
     ProgressWriter -Status "Cleaning up" -PercentComplete $PercentComplete
     Remove-Item -Path C:\Hovercast\DirectX -force -Recurse 
     }
@@ -594,46 +610,51 @@ function clean-up {
     Remove-Item -Path $path\ParsecTemp -force -Recurse
     }
 
+
 #cleanup recent files
 function clean-up-recent {
     ProgressWriter -Status "Delete recently accessed files list from Windows Explorer" -PercentComplete $PercentComplete
     remove-item "$env:AppData\Microsoft\Windows\Recent\*" -Recurse -Force | Out-Null
     }
 
-#Start GPU Update Tool
-Function StartGPUUpdate {
-    param(
-    [switch]$DontPromptPasswordUpdateGPU
-    )
-    if ($DontPromptPasswordUpdateGPU) {
-        }
-    Else {
-      start-process powershell.exe -verb RunAS -argument "-file $env:ProgramData\ParsecLoader\GPUUpdaterTool.ps1"
-        }
-    }
-Write-Host -foregroundcolor red "
-                               ((//////                                
-                             #######//////                             
-                             ##########(/////.                         
-                             #############(/////,                      
-                             #################/////*                   
-                             #######/############////.                 
-                             #######/// ##########////                 
-                             #######///    /#######///                 
-                             #######///     #######///                 
-                             #######///     #######///                 
-                             #######////    #######///                 
-                             ########////// #######///                 
-                             ###########////#######///                 
-                               ####################///                 
-                                   ################///                 
-                                     *#############///                 
-                                         ##########///                 
-                                            ######(*                   
-                                                           
-                           
-                                       
-                    ~Parsec Self Hosted Cloud Setup Script~
+
+
+
+
+
+
+
+
+
+    Write-Host -foregroundcolor red " ,,,                                      
+                                ,,,,,,,,,,,,,,,,,                               
+                           ,,,,,,,,,,,,,,,,,,,,,,,,,,                           
+                       ,,,,,,,,,,,,           ,,,,,,,,,,,,                      
+                   ,,,,,,,,,,,                    ,,,,,,,,,,,,                  
+              .,,,,,,,,,,,                            .,,,,,,,,,,,              
+          ,,,,,,,,,,,,               ,,,,,,                ,,,,,,,,,,,,         
+      ,,,,,,,,,,,,               ,,,,,,,,,,,,,,,               ,,,,,,,,,,,,     
+  ,,,,,,,,,,,                ,,,,,,,,,,,,,,,,,,,,,,,               .,,,,,,,,,,, 
+ ,,,,,,,,               ,,,,,,,,,,,,         ,,,,,,,,,,,                ,,,,,,,,
+,,,,,,              ,,,,,,,,,,,,,,,              ,,,,,,,,,,,,             ,,,,,,
+ ,,,,,,,,,.     ,,,,,,,,,,,,,,,,,,,,,,,              ,,,,,,,,,,,,     ,,,,,,,,,,
+   ,,,,,,,,,,,,,,,,,,,,      ,,,,,,,,.                    ,,,,,,,,,,,,,,,,,,,,  
+       (,,,,,,,,,,,                            ,              ,,,,,,,,,,,(      
+   ,,(((((((,,,,,,,,,,,,                   ,,,,,,,,,     .,,,,,,,,,,,((((((/,,  
+ ,,,,,,,,*      ,,,,,,,,,,,,              ,,,,,,,,,,,,,,,,,,,,,,,     ,,,,,,,,,,
+,,,,,,               ,,,,,,,,,,,              ,,,,,,,,,,,,,,               ,,,,,
+ ,,,,,,,,                ,,,,,,,,,,,.       .,,,,,,,,,,,                ,,,,,,,,
+  ,,,,,,,,,,,,               ,,,,,,,,,,,,,,,,,,,,,,,               ,,,,,,,,,,,. 
+      ,,,,,,,,,,,,               .,,,,,,,,,,,,,.               ,,,,,,,,,,,,     
+           ,,,,,,,,,,,                ,,,,,                ,,,,,,,,,,,          
+               ,,,,,,,,,,,.                           ,,,,,,,,,,,,              
+                   ,,,,,,,,,,,,                   ,,,,,,,,,,,,                  
+                        ,,,,,,,,,,,           ,,,,,,,,,,,                       
+                            ,,,,,,,,,,,,,,,,,,,,,,,,,                           
+                                ,,,,,,,,,,,,,,,,,                               
+                                       ,,,  
+
+                           ~Hovercast VCR Cloud Prep Tool~
 
                     This script sets up your cloud computer
                     with a bunch of settings and drivers
@@ -645,25 +666,7 @@ Write-Host -foregroundcolor red "
                     Check out the README.md for more
                     information.
 
-                    This tool supports:
-
-                    OS:
-                    Server 2016
-                    Server 2019
-                    
-                    CLOUD SKU:
-                    AWS G3.4xLarge    (Tesla M60)
-                    AWS G2.2xLarge    (GRID K520)
-                    AWS G4dn.xLarge   (Tesla T4 with vGaming driver)
-                    Azure NV6         (Tesla M60)
-                    Paperspace P4000  (Quadro P4000)
-                    Paperspace P5000  (Quadro P5000)
-                    Google P100 VW    (Tesla P100 Virtual Workstation)
-                    Google P4  VW    (Tesla P4 Virtual Workstation)
-                    Google T4  VW    (Tesla T4 Virtual Workstation)
-
 "   
-#PromptUserAutoLogon -DontPromptPasswordUpdateGPU:$DontPromptPasswordUpdateGPU
 $ScripttaskList = @(
 "setupEnvironment";
 "addRegItems";
