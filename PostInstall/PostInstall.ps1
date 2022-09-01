@@ -251,6 +251,29 @@ add-type  @"
         }
 "@
 
+#Modifies Local Group Policy to enable Shutdown scrips items
+function add-gpo-modifications {
+    $querygpt = Get-content C:\Windows\System32\GroupPolicy\gpt.ini
+    $matchgpt = $querygpt -match '{42B5FAAE-6536-11D2-AE5A-0000F87571E3}{40B6664F-4972-11D1-A7CA-0000F87571E3}'
+    if ($matchgpt -contains "*0000F87571E3*" -eq $false) {
+        $gptstring = get-content C:\Windows\System32\GroupPolicy\gpt.ini
+        $gpoversion = $gptstring -match "Version"
+        $GPO = $gptstring -match "gPCMachineExtensionNames"
+        $add = '[{42B5FAAE-6536-11D2-AE5A-0000F87571E3}{40B6664F-4972-11D1-A7CA-0000F87571E3}]'
+        $replace = "$GPO" + "$add"
+        (Get-Content "C:\Windows\System32\GroupPolicy\gpt.ini").Replace("$GPO","$replace") | Set-Content "C:\Windows\System32\GroupPolicy\gpt.ini"
+        [int]$i = $gpoversion.trim("Version=") 
+        [int]$n = $gpoversion.trim("Version=")
+        $n +=2
+        (Get-Content C:\Windows\System32\GroupPolicy\gpt.ini) -replace "Version=$i", "Version=$n" | Set-Content C:\Windows\System32\GroupPolicy\gpt.ini
+        }
+    else{
+        write-output "Not Required"
+        }
+    }
+
+
+
 
 #Adds Premade Group Policu Item if existing configuration doesn't exist
 function addRegItems{
