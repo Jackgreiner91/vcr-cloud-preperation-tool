@@ -344,7 +344,7 @@ function download-resources {
     ProgressWriter -Status "Downloading Parsec Virtual Display Driver" -percentcomplete $PercentComplete
     (New-Object System.Net.WebClient).DownloadFile("https://builds.parsec.app/vdd/parsec-vdd-0.37.0.0.exe", "C:\Hovercast\Apps\parsec-vdd.exe")
     ProgressWriter -Status "Downloading GPU Updater" -PercentComplete $PercentComplete
-    (New-Object System.Net.WebClient).DownloadFile("https://firebasestorage.googleapis.com/v0/b/controlroom-live.appspot.com/o/app-uploads%2Fwallpaper_5b52c7d7-43a3-410f-b91c-6fe966ed3339.jpg?alt=media&token=907a55b1-60c4-4deb-a88d-056edbfb5849", "C:\Hovercast\wallpaper.png")
+    (New-Object System.Net.WebClient).DownloadFile("https://firebasestorage.googleapis.com/v0/b/controlroom-live.appspot.com/o/app-uploads%2Fwallpaper_5b52c7d7-43a3-410f-b91c-6fe966ed3339.jpg?alt=media&token=907a55b1-60c4-4deb-a88d-056edbfb5849", "C:\Hovercast\hovercastWallpaper.jpg")
     ProgressWriter -Status "Downloading Google Chrome" -PercentComplete $PercentComplete
     (New-Object System.Net.WebClient).DownloadFile("https://dl.google.com/tag/s/dl/chrome/install/googlechromestandaloneenterprise64.msi", "C:\Hovercast\Apps\googlechromestandaloneenterprise64.msi")
     ProgressWriter -Status "Downloading vMix25" -PercentComplete $PercentComplete
@@ -381,11 +381,11 @@ function install-windows-features {
     ProgressWriter -Status "Installing Zoom" -PercentComplete $PercentComplete
     start-process -filepath "C:\Windows\System32\msiexec.exe" -ArgumentList '/qn /i "C:\Hovercast\Apps\ZoomInstallerFull.msi"' -Wait
     ProgressWriter -Status "Installing vMix25" -PercentComplete $PercentComplete
-    Start-Process -FilePath "C:\Hovercast\Apps\vmix25.exe" -ArgumentList '/silent' -wait
+    Start-Process -FilePath "C:\Hovercast\Apps\vmix25.exe" -ArgumentList '/verysilent' -wait
     ProgressWriter -Status "Installing NDI Tools" -PercentComplete $PercentComplete
-    Start-Process -FilePath "C:\Hovercast\Apps\NDI5.exe" -ArgumentList '/silent' -wait
+    Start-Process -FilePath "C:\Hovercast\Apps\NDI5.exe" -ArgumentList '/verysilent' -wait
     ProgressWriter -Status "Installing OBS" -PercentComplete $PercentComplete
-    Start-Process -FilePath "C:\Hovercast\Apps\OBS.exe" -ArgumentList '/silent' -wait
+    Start-Process -FilePath "C:\Hovercast\Apps\OBS.exe" -ArgumentList '/verysilent' -wait
     ProgressWriter -Status "Cleaning up" -PercentComplete $PercentComplete
     Remove-Item -Path C:\Hovercast\DirectX -force -Recurse 
     }
@@ -468,7 +468,7 @@ function disable-lock {
 function set-wallpaper {
     ProgressWriter -Status "Setting the Parsec logo ass the computer wallpaper" -PercentComplete $PercentComplete
     if((Test-Path -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\System) -eq $true) {} Else {New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies" -Name "System" | Out-Null}
-    if((Test-RegistryValue -path HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\System -value Wallpaper) -eq $true) {Set-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\System -Name Wallpaper -value "$path\HovercastTemp\PreInstall\hovercastWallpaper.jpg" | Out-Null} Else {New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\System -Name Wallpaper -PropertyType String -value "C:\Hovercast\parsec+desktop.png" | Out-Null}
+    if((Test-RegistryValue -path HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\System -value Wallpaper) -eq $true) {Set-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\System -Name Wallpaper -value "C:\Hovercast\hovercastWallpaper.jpg" | Out-Null} Else {New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\System -Name Wallpaper -PropertyType String -value "C:\Hovercast\hovercastWallpaper.jpg" | Out-Null}
     if((Test-RegistryValue -path HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\System -value WallpaperStyle) -eq $true) {Set-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\System -Name WallpaperStyle -value 2 | Out-Null} Else {New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\System -Name WallpaperStyle -PropertyType String -value 2 | Out-Null}
     Stop-Process -ProcessName explorer
     }
@@ -491,6 +491,12 @@ function clean-aws {
     remove-item -path "$path\EC2 Feedback.Website"
     Remove-Item -Path "$path\EC2 Microsoft Windows Guide.website"
     }
+
+function nginx {
+    Expand-Archive -Path "$path\HovercastTemp\PreInstall\nginx.zip" -DestinationPath "C:\Hovercast\Apps\nginx"
+    cmd.exe /c  "C:\Hovercast\Apps\nginx\windows firewall\open.firewall.ports_run.as.admin.bat
+}
+
 
 
 function AudioInstall {
