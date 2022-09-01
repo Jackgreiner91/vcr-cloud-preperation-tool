@@ -468,7 +468,7 @@ function disable-lock {
 function set-wallpaper {
     ProgressWriter -Status "Setting the Parsec logo ass the computer wallpaper" -PercentComplete $PercentComplete
     if((Test-Path -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\System) -eq $true) {} Else {New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies" -Name "System" | Out-Null}
-    if((Test-RegistryValue -path HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\System -value Wallpaper) -eq $true) {Set-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\System -Name Wallpaper -value "$path\HovercastTemp\hovercastWallpaper.jpg" | Out-Null} Else {New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\System -Name Wallpaper -PropertyType String -value "C:\Hovercast\parsec+desktop.png" | Out-Null}
+    if((Test-RegistryValue -path HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\System -value Wallpaper) -eq $true) {Set-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\System -Name Wallpaper -value "$path\HovercastTemp\PreInstall\hovercastWallpaper.jpg" | Out-Null} Else {New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\System -Name Wallpaper -PropertyType String -value "C:\Hovercast\parsec+desktop.png" | Out-Null}
     if((Test-RegistryValue -path HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\System -value WallpaperStyle) -eq $true) {Set-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\System -Name WallpaperStyle -value 2 | Out-Null} Else {New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\System -Name WallpaperStyle -PropertyType String -value 2 | Out-Null}
     Stop-Process -ProcessName explorer
     }
@@ -493,7 +493,7 @@ function clean-aws {
     }
 
 
-function AudioInstall0 {
+function AudioInstall {
     New-Item -Path "C:\Hovercast\Apps\VBCable0" -ItemType Directory| Out-Null
     New-Item -Path "C:\Hovercast\Apps\VBCable1" -ItemType Directory| Out-Null
     New-Item -Path "C:\Hovercast\Apps\VBCable2" -ItemType Directory| Out-Null
@@ -688,6 +688,7 @@ $ScripttaskList = @(
 "Install-Gaming-Apps";
 "disable-devices";
 "InstallParsecVDD";
+"AudioInstall";
 "Server2019Controller";
 )
 
@@ -704,5 +705,3 @@ Write-Host "You may want to change your Windows password to something simpler if
 Write-host "DONE!" -ForegroundColor black -BackgroundColor Green
 if ($DontPromptPasswordUpdateGPU) {} 
 Else {pause}
-
-
