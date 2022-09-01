@@ -454,8 +454,8 @@ function clean-aws {
     }
 
 
-function AudioInstall {
-    (New-Item -Path "C:\Hovercast\Apps\VBCable0" -ItemType Directory| Out-Null
+function AudioInstall0 {
+    New-Item -Path "C:\Hovercast\Apps\VBCable0" -ItemType Directory| Out-Null
     New-Item -Path "C:\Hovercast\Apps\VBCable1" -ItemType Directory| Out-Null
     New-Item -Path "C:\Hovercast\Apps\VBCable2" -ItemType Directory| Out-Null
     Expand-Archive -Path "$path\HovercastTemp\PreInstall\VBCABLE_Driver_Pack43.zip" -DestinationPath "C:\Hovercast\Apps\VBCable0"
