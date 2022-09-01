@@ -321,7 +321,7 @@ function Test-RegistryValue {
 #Create ParsecTemp folder in C Drive
 function create-directories {
     ProgressWriter -Status "Creating Directories (C:\ParsecTemp)" -PercentComplete $PercentComplete
-    if((Test-Path -Path C:\Hovercast) -eq $true) {} Else {New-Item -Path C:\ParsecTemp -ItemType directory | Out-Null}
+    if((Test-Path -Path C:\Hovercast) -eq $true) {} Else {New-Item -Path C:\Hovercast -ItemType directory | Out-Null}
     if((Test-Path -Path C:\Hovercast\Apps) -eq $true) {} Else {New-Item -Path C:\Hovercast\Apps -ItemType directory | Out-Null}
     if((Test-Path -Path C:\Hovercast\DirectX) -eq $true) {} Else {New-Item -Path C:\Hovercast\DirectX -ItemType directory | Out-Null}
     if((Test-Path -Path C:\Hovercast\Drivers) -eq $true) {} Else {New-Item -Path C:\Hovercast\Drivers -ItemType Directory | Out-Null}
@@ -355,6 +355,10 @@ function download-resources {
     (New-Object System.Net.WebClient).DownloadFile("https://go.skype.com/msi-download", "C:\Hovercast\Apps\skype.msi") 
     ProgressWriter -Status "Downloading NDI5 Tools" -PercentComplete $PercentComplete
     (New-Object System.Net.WebClient).DownloadFile("https://downloads.ndi.tv/Tools/NDI%205%20Tools.exe", "C:\Hovercast\Apps\NDI5.exe") 
+    Move-Item -path "$path\HovercastTemp\PreInstall\autostart.bat" -Destination "c:\hovercast\apps\autostart.bat"
+    Move-Item -path "$path\HovercastTemp\PreInstall\SetVol.exe" -Destination "c:\hovercast\apps\SetVol.exe"
+    Move-Item -path "$path\HovercastTemp\PreInstall\template assets" -Destination "c:\users\hovercast\documents"
+    Move-Item -path "$path\HovercastTemp\PreInstall\admin" -Destination "c:\users\hovercast\desktop"
     $basePath = "C:\Hovercast\temp\"
     $latestRelease = Invoke-WebRequest https://api.github.com/repos/obsproject/obs-studio/releases/latest -Headers @{"Accept"="application/json"}
     # The releases are returned in the format {"id":3622206,"tag_name":"hello-1.0.0.11",...}, we have to extract the tag_name.
@@ -494,7 +498,10 @@ function clean-aws {
 
 function nginx {
     Expand-Archive -Path "$path\HovercastTemp\PreInstall\nginx.zip" -DestinationPath "C:\Hovercast\Apps\nginx"
-    cmd.exe /c  "C:\Hovercast\Apps\nginx\windows firewall\open.firewall.ports_run.as.admin.bat
+    cmd.exe /c  "C:\Hovercast\Apps\nginx\windows firewall\open.firewall.ports_run.as.admin.bat"
+    $sta = New-ScheduledTaskAction -Execute "c:\hovercast\apps\autostart.bat"
+    $Stt = New-ScheduledTaskTrigger -AtLogon
+    Register-ScheduledTask Task01 -Action $Sta -Trigger $Stt
 }
 
 
