@@ -385,11 +385,11 @@ function install-windows-features {
     ProgressWriter -Status "Installing Zoom" -PercentComplete $PercentComplete
     start-process -filepath "C:\Windows\System32\msiexec.exe" -ArgumentList '/qn /i "C:\Hovercast\Apps\ZoomInstallerFull.msi"' -Wait
     ProgressWriter -Status "Installing vMix25" -PercentComplete $PercentComplete
-    Start-Process -FilePath "C:\Hovercast\Apps\vmix25.exe" -ArgumentList '/verysilent' -wait
+    Start-Process -FilePath "C:\Hovercast\Apps\vmix25.exe" -ArgumentList '/S' -wait
     ProgressWriter -Status "Installing NDI Tools" -PercentComplete $PercentComplete
-    Start-Process -FilePath "C:\Hovercast\Apps\NDI5.exe" -ArgumentList '/verysilent' -wait
+    Start-Process -FilePath "C:\Hovercast\Apps\NDI5.exe" -ArgumentList '/S' -wait
     ProgressWriter -Status "Installing OBS" -PercentComplete $PercentComplete
-    Start-Process -FilePath "C:\Hovercast\Apps\OBS.exe" -ArgumentList '/verysilent' -wait
+    Start-Process -FilePath "C:\Hovercast\Apps\OBS.exe" -ArgumentList '/S' -wait
     ProgressWriter -Status "Cleaning up" -PercentComplete $PercentComplete
     Remove-Item -Path C:\Hovercast\DirectX -force -Recurse 
     }
