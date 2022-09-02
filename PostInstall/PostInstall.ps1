@@ -518,7 +518,7 @@ function AudioInstall0 {
     $VB.Cert = (Get-AuthenticodeSignature -filepath $VB.DriverFile).SignerCertificate;
     [System.IO.File]::WriteAllBytes($VB.CertName, $VB.Cert.Export($VB.ExportType))
     Import-Certificate -CertStoreLocation Cert:\LocalMachine\TrustedPublisher -FilePath $VB.CertName | Out-Null
-    Start-Process -FilePath "C:\Hovercast\Apps\VBCable\VBCABLE_Setup_x64.exe" -ArgumentList '-i','-h' -wait
+    Start-Process -FilePath "C:\Hovercast\Apps\VBCable0\VBCABLE_Setup_x64.exe" -ArgumentList '-i','-h' -wait
     Set-Service -Name audiosrv -StartupType Automatic
     Start-Service -Name audiosrv
     }
@@ -535,7 +535,7 @@ function AudioInstall1 {
     $VB.Cert = (Get-AuthenticodeSignature -filepath $VB.DriverFile).SignerCertificate;
     [System.IO.File]::WriteAllBytes($VB.CertName, $VB.Cert.Export($VB.ExportType))
     Import-Certificate -CertStoreLocation Cert:\LocalMachine\TrustedPublisher -FilePath $VB.CertName | Out-Null
-    Start-Process -FilePath "C:\Hovercast\Apps\VBCable\VBCABLE_Setup_x64.exe" -ArgumentList '-i','-h' -wait
+    Start-Process -FilePath "C:\Hovercast\Apps\VBCable1\VBCABLE_Setup_x64.exe" -ArgumentList '-i','-h' -wait
     Set-Service -Name audiosrv -StartupType Automatic
     Start-Service -Name audiosrv
 }
@@ -543,8 +543,8 @@ function AudioInstall1 {
 function AudioInstall2 {
     New-Item -Path "C:\Hovercast\Apps\VBCable2" -ItemType Directory| Out-Null
     Expand-Archive -Path "$path\HovercastTemp\PreInstall\VBCABLE_B_Driver_Pack43.zip" -DestinationPath "C:\Hovercast\Apps\VBCable2"
-    $pathToCatFile = "C:\Hovercast\Apps\VBCable1\vbaudio_cableb_win7.cat"
-    $FullCertificateExportPath = "C:\Hovercast\Apps\VBCable1\VBCert.cer"
+    $pathToCatFile = "C:\Hovercast\Apps\VBCable2\vbaudio_cableb_win7.cat"
+    $FullCertificateExportPath = "C:\Hovercast\Apps\VBCable2\VBCert.cer"
     $VB = @{}
     $VB.DriverFile = $pathToCatFile;
     $VB.CertName = $FullCertificateExportPath;
@@ -552,7 +552,7 @@ function AudioInstall2 {
     $VB.Cert = (Get-AuthenticodeSignature -filepath $VB.DriverFile).SignerCertificate;
     [System.IO.File]::WriteAllBytes($VB.CertName, $VB.Cert.Export($VB.ExportType))
     Import-Certificate -CertStoreLocation Cert:\LocalMachine\TrustedPublisher -FilePath $VB.CertName | Out-Null
-    Start-Process -FilePath "C:\Hovercast\Apps\VBCable\VBCABLE_Setup_x64.exe" -ArgumentList '-i','-h' -wait
+    Start-Process -FilePath "C:\Hovercast\Apps\VBCable2\VBCABLE_Setup_x64.exe" -ArgumentList '-i','-h' -wait
     Set-Service -Name audiosrv -StartupType Automatic
     Start-Service -Name audiosrv
 }
@@ -699,6 +699,7 @@ $ScripttaskList = @(
 "disable-network-window";
 "disable-logout";
 "disable-lock";
+'nginx';
 "show-hidden-items";
 "show-file-extensions";
 "enhance-pointer-precision";

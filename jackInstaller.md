@@ -20,6 +20,10 @@ Invoke-WebRequest -URI $URL -OutFile $Path
 $privacyRegPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\"
 Set-ItemProperty "$privacyRegPath\microphone" "value" -Value "Allow" -type String
 Set-ItemProperty "$privacyRegPath\webcam" "value" -Value "Allow" -type String
+$authRegPath = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon\"
+Set-ItemProperty $authRegPath "AutoAdminLogon" -Value "1" -type String
+Set-ItemProperty $authRegPath "DefaultPassword" -Value "ControlRoom!" -type String
+Set-ItemProperty $authRegPath "DefaultUsername" -Value "hovercast" -type String
 
 
 
@@ -28,4 +32,21 @@ Set-ItemProperty "$privacyRegPath\webcam" "value" -Value "Allow" -type String
 Set-ItemProperty -Path HKCU:\Software\Microsoft\ServerManager -Name DoNotOpenServerManagerAtLogon -Value 1
 
 
-Need to redo the password stuff. 
+
+
+$authRegPath = "HKCU:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon"
+if((Test-Path -Path $authRegPath\DefaultPassword) -eq $true) {Set-ItemProperty -path "$authRegPath" -name "DefaultPassword" -Value "ControlRoom!" -type String} Else {New-Item -path "$authRegPath" -name "DefaultPassword" -Value "ControlRoom!"}
+
+New-Item -path "$authRegPath" -name "DefaultPassword" -Value "ControlRoom!" -type String
+Set-ItemProperty "$authRegPath" "DefaultUsername" -Value "hovercast" -type String
+Set-ItemProperty "$authRegPath" "AutoAdminLogon" -Value "1" -type String
+add-newitem
+
+
+
+vMix Config
+Default Audio Inputs Skype + Zoom
+Template Files On desktop
+
+
+Install NDI tools last because it stops all other processes. 

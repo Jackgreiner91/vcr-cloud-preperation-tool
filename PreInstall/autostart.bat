@@ -1,6 +1,6 @@
 @echo off
 
-cd "C:\Hovercast\"
+cd "C:\Hovercast\apps\SetVol.exe"
 SetVol unmute
 SetVol 100
 
