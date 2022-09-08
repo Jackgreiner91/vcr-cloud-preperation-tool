@@ -646,9 +646,9 @@ function clean-up-recent {
 
 
 function Install-NDI-Tools {
-    Start-Job -Passthru -FilePath "$path\HovercastTemp\ndi-tools-install.ps1" -ArgumentList '/VERYSILENT' | Wait-Process
+    Start-Job -FilePath "$path\HovercastTemp\ndi-tools-install.ps1"
 }
-
+ 
 
 
 function Install-OBS-with-NDI {
