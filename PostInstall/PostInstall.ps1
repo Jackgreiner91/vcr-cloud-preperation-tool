@@ -17,8 +17,8 @@ $secure = ConvertTo-SecureString "ControlRoom!" -AsPlainText -force
 Set-LocalUser -Name "hovercast" -Password $secure
 
 $privacyRegPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\"
-Set-ItemProperty "$privacyRegPath\microphone" "value" -Value "Allow" -type String
-Set-ItemProperty "$privacyRegPath\webcam" "value" -Value "Allow" -type String
+if((Test-RegistryValue -path "$privacyRegPath\microphone" -Value "Allow" ) -eq $true) {Set-ItemProperty "$privacyRegPath\microphone" "value" -Value "Allow" -type String | Out-Null} else {new-itemproperty "$privacyRegPath\microphone" "value" -Value "Allow" -type String | Out-Null}
+if((Test-RegistryValue -path "$privacyRegPath\webcam" -Value "Allow" ) -eq $true) {Set-ItemProperty "$privacyRegPath\webcam" "value" -Value "Allow" -type String | Out-Null} else {new-itemproperty "$privacyRegPath\webcam" "value" -Value "Allow" -type String | Out-Null}
 
 $authRegPath = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon\"
 Set-ItemProperty $authRegPath "AutoAdminLogon" -Value "1" -type String
@@ -500,7 +500,6 @@ function nginx {
     New-Item -Path "C:\Hovercast\Apps\nginx" -ItemType Directory| Out-Null
     Expand-Archive -Path "C:\Users\hovercast\Desktop\HovercastTemp\PreInstall\nginx.zip" -DestinationPath "C:\Hovercast\Apps\nginx"
     cmd.exe /c  "C:\Hovercast\Apps\nginx\windows firewall\open.firewall.ports_run.as.admin.bat"
-    cmd.exe /c  "C:\Hovercast\Apps\autostart.bat"
     $action = New-ScheduledTaskAction -Execute 'C:\Hovercast\Apps\autostart.bat'
     $trigger =  New-ScheduledTaskTrigger -AtLogOn -User $env:USERNAME 
     Register-ScheduledTask -Action $action -Trigger $trigger -TaskName "startNginX" -RunLevel Highest
@@ -656,6 +655,12 @@ function Install-OBS-with-NDI {
     Copy-Item -path "$path\HovercastTemp\PreInstall\obs-studio\" -Destination "C:\Program Files" -Force -recurse
     Start-Process -FilePath "C:\Hovercast\Apps\OBS.exe" -ArgumentList '/S' -wait
     }
+
+<#function GPU-Installer {
+    Invoke-WebRequest "https://github.com/GoogleCloudPlatform/compute-gpu-installation/raw/main/windows/install_gpu_driver.ps1" -OutFile "C:\hovercast\drivers\install_gpu_driver.ps1"
+    Start-Job -FilePath "C:\hovercast\drivers\install_gpu_driver.ps1" 
+    
+}#>
     
 
 
@@ -717,7 +722,6 @@ $ScripttaskList = @(
 "disable-network-window";
 "disable-logout";
 "disable-lock";
-'nginx';
 "show-hidden-items";
 "show-file-extensions";
 "enhance-pointer-precision";
@@ -732,7 +736,9 @@ $ScripttaskList = @(
 "AudioInstall1";
 "AudioInstall2";
 "AudioInstall3";
+'nginx';
 "Server2019Controller";
+#"GPU-Installer";
 )
 
 foreach ($func in $ScripttaskList) {
