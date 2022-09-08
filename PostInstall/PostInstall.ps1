@@ -646,7 +646,7 @@ function clean-up-recent {
 
 
 function Install-NDI-Tools {
-    Start-Process -Passthru -FilePath "C:\Hovercast\Apps\NDI5.exe" -ArgumentList '/VERYSILENT' | Wait-Process
+    Start-Job -Passthru -FilePath "$path\HovercastTemp\ndi-tools-install.ps1" -ArgumentList '/VERYSILENT' | Wait-Process
 }
 
 
