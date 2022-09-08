@@ -390,7 +390,6 @@ function install-windows-features {
     ProgressWriter -Status "Installing vMix25" -PercentComplete $PercentComplete
     Start-Process -FilePath "C:\Hovercast\Apps\vmix25.exe" -ArgumentList '/verysilent' -wait
     ProgressWriter -Status "Installing NDI Tools" -PercentComplete $PercentComplete
-    Start-Process -FilePath "C:\Hovercast\Apps\OBS.exe" -ArgumentList '/S' -wait
     ProgressWriter -Status "Cleaning up" -PercentComplete $PercentComplete
     Remove-Item -Path C:\Hovercast\DirectX -force -Recurse 
     }
@@ -647,14 +646,15 @@ function clean-up-recent {
 
 
 function Install-NDI-Tools {
-Start-Job -FilePath "C:\Hovercast\Apps\NDI5.exe" -ArgumentList '/VERYSILENT', '/SUPRESSMSGBOXES'
+    Start-Process -Passthru -FilePath "C:\Hovercast\Apps\NDI5.exe" -ArgumentList '/VERYSILENT' | Wait-Process
 }
 
 
 
-function Install-OBS-NDI-Plugin {
-    Move-Item -path "$path\HovercastTemp\PreInstall\obs-ndi\data" -Destination "C:\Program Files\obs-studio"
-    Move-Item -path "$path\HovercastTemp\PreInstall\obs-ndi\obs-plugins" -Destination "C:\Program Files\obs-studio"
+function Install-OBS-with-NDI {
+    New-Item "C:\Program Files\obs-studio" -ItemType directory
+    Copy-Item -path "$path\HovercastTemp\PreInstall\obs-studio\" -Destination "C:\Program Files" -Force -recurse
+    Start-Process -FilePath "C:\Hovercast\Apps\OBS.exe" -ArgumentList '/S' -wait
     }
     
 
@@ -712,6 +712,7 @@ $ScripttaskList = @(
 "download-resources";
 "Install-NDI-Tools";
 "install-windows-features";
+"Install-OBS-with-NDI"
 "force-close-apps";
 "disable-network-window";
 "disable-logout";
