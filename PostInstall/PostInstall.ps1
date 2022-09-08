@@ -11,7 +11,6 @@ Function ProgressWriter {
     }
 
 $path = [Environment]::GetFolderPath("Desktop")
-$currentusersid = Get-LocalUser "$env:USERNAME" | Select-Object SID | ft -HideTableHeaders | Out-String | ForEach-Object { $_.Trim() }
 
 
 $secure = ConvertTo-SecureString "ControlRoom!" -AsPlainText -force
@@ -355,11 +354,15 @@ function download-resources {
     (New-Object System.Net.WebClient).DownloadFile("https://go.skype.com/msi-download", "C:\Hovercast\Apps\skype.msi") 
     ProgressWriter -Status "Downloading NDI5 Tools" -PercentComplete $PercentComplete
     (New-Object System.Net.WebClient).DownloadFile("https://downloads.ndi.tv/Tools/NDI%205%20Tools.exe", "C:\Hovercast\Apps\NDI5.exe") 
+    ProgressWriter -Status "Downloading VideoCom Zoom NDI Bridge" -PercentComplete $PercentComplete
+    (New-Object System.Net.WebClient).DownloadFile("https://videocom.at/downloads/VideoCom%20-%20Zoom%20Bridge%20for%20NDI-1.4.2%20Setup.exe", "C:\Hovercast\Apps\VideoCom.NDI.Bridge.exe") 
+    ProgressWriter -Status "Moving Files from TEMP" -PercentComplete $PercentComplete
+    Move-Item -path "$path\HovercastTemp\PreInstall\VBCable_CD_PackSetup.exe" -Destination "c:\hovercast\apps\VBCable_CD_PackSetup.exe"
     Move-Item -path "$path\HovercastTemp\PreInstall\autostart.bat" -Destination "c:\hovercast\apps\autostart.bat"
     Move-Item -path "$path\HovercastTemp\PreInstall\SetVol.exe" -Destination "c:\hovercast\apps\SetVol.exe"
     Move-Item -path "$path\HovercastTemp\PreInstall\template assets" -Destination "c:\users\hovercast\documents"
     Move-Item -path "$path\HovercastTemp\PreInstall\admin" -Destination "c:\users\hovercast\desktop"
-    $basePath = "C:\Hovercast\temp\"
+    ProgressWriter -Status "Downloading OBS" -PercentComplete $PercentComplete
     $latestRelease = Invoke-WebRequest https://api.github.com/repos/obsproject/obs-studio/releases/latest -Headers @{"Accept"="application/json"}
     # The releases are returned in the format {"id":3622206,"tag_name":"hello-1.0.0.11",...}, we have to extract the tag_name.
     $json = $latestRelease.Content | ConvertFrom-Json
@@ -557,6 +560,12 @@ function AudioInstall2 {
     Start-Service -Name audiosrv
 }
 
+function AudioInstall3 {
+    Start-Process -FilePath "C:\Hovercast\Apps\VBCable2\VBCABLE_Setup_x64.exe" -ArgumentList '/S', '-i','-h' -wait
+    Set-Service -Name audiosrv -StartupType Automatic
+    Start-Service -Name audiosrv
+}
+
 
 
 #7Zip is required to extract the Parsec-Windows.exe File
@@ -638,7 +647,7 @@ function clean-up-recent {
 
 
 function Install-NDI-Tools {
-Start-Process -FilePath "C:\Hovercast\Apps\NDI5.exe" -ArgumentList '/verysilent' -wait
+Start-Process -FilePath "C:\Hovercast\Apps\NDI5.exe" -ArgumentList '/VERYSILENT', '/SUPRESSMSGBOXES'
 }
 
 
@@ -713,8 +722,9 @@ $ScripttaskList = @(
 "AudioInstall0";
 "AudioInstall1";
 "AudioInstall2";
+"AudioInstall3";
 "Server2019Controller";
-"Install-NDI-Tools"
+"Install-NDI-Tools";
 )
 
 foreach ($func in $ScripttaskList) {
