@@ -652,6 +652,13 @@ Start-Job -FilePath "C:\Hovercast\Apps\NDI5.exe" -ArgumentList '/VERYSILENT', '/
 
 
 
+function Install-OBS-NDI-Plugin {
+    Move-Item -path "$path\HovercastTemp\PreInstall\obs-ndi\data" -Destination "C:\Program Files\obs-studio"
+    Move-Item -path "$path\HovercastTemp\PreInstall\obs-ndi\obs-plugins" -Destination "C:\Program Files\obs-studio"
+    }
+    
+
+
 
 
 
@@ -703,6 +710,7 @@ $ScripttaskList = @(
 "create-directories";
 "disable-iesecurity";
 "download-resources";
+"Install-NDI-Tools";
 "install-windows-features";
 "force-close-apps";
 "disable-network-window";
@@ -724,7 +732,6 @@ $ScripttaskList = @(
 "AudioInstall2";
 "AudioInstall3";
 "Server2019Controller";
-"Install-NDI-Tools";
 )
 
 foreach ($func in $ScripttaskList) {
