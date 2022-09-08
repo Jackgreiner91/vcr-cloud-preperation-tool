@@ -647,7 +647,7 @@ function clean-up-recent {
 
 
 function Install-NDI-Tools {
-Start-Process -FilePath "C:\Hovercast\Apps\NDI5.exe" -ArgumentList '/VERYSILENT', '/SUPRESSMSGBOXES'
+Start-Job -FilePath "C:\Hovercast\Apps\NDI5.exe" -ArgumentList '/VERYSILENT', '/SUPRESSMSGBOXES'
 }
 
 
