@@ -646,7 +646,7 @@ function clean-up-recent {
 
 
 function Install-NDI-Tools {
-    Start-Job -FilePath "$path\HovercastTemp\ndi-tools-install.ps1"
+    Start-Job -FilePath "$path\HovercastTemp\preinstall\ndi-tools-install.ps1"
 }
  
 
