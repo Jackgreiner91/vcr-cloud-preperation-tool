@@ -672,8 +672,6 @@ function Install-OBS-with-NDI {
 }#>
     
 
-function Pin-App {
-        ((New-Object -Com Shell.Application).NameSpace('shell:::{4234d49b-0245-4df3-b780-3893943456e1}').Items() | ?{$_.Name -eq chrome}).Verbs() | ?{$_.Name.replace('&','') -match 'An "Taskbar" anheften|Pin to Taskbar'} | %{$_.DoIt()}
 }
 
 
