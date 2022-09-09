@@ -1,8 +1,9 @@
 @echo off
 
 cd "C:\Hovercast\apps\"
-SetVol.exe unmute
-SetVol.exe 100
+SetVol unmute
+SetVol 100
+SetVol makedefault 
 
 cd "C:\Hovercast\Apps\nginx"
 start nginx.exe

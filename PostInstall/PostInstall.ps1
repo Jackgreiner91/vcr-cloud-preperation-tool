@@ -17,8 +17,9 @@ $secure = ConvertTo-SecureString "ControlRoom!" -AsPlainText -force
 Set-LocalUser -Name "hovercast" -Password $secure
 
 $privacyRegPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\"
-if((Test-RegistryValue -path "$privacyRegPath\microphone" -Value "Allow" ) -eq $true) {Set-ItemProperty "$privacyRegPath\microphone" "value" -Value "Allow" -type String | Out-Null} else {new-itemproperty "$privacyRegPath\microphone" "value" -Value "Allow" -type String | Out-Null}
-if((Test-RegistryValue -path "$privacyRegPath\webcam" -Value "Allow" ) -eq $true) {Set-ItemProperty "$privacyRegPath\webcam" "value" -Value "Allow" -type String | Out-Null} else {new-itemproperty "$privacyRegPath\webcam" "value" -Value "Allow" -type String | Out-Null}
+Set-ItemProperty "$privacyRegPath\microphone" "value" -Value "Allow" -type String
+Set-ItemProperty "$privacyRegPath\webcam" "value" -Value "Allow" -type String
+
 
 $authRegPath = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon\"
 Set-ItemProperty $authRegPath "AutoAdminLogon" -Value "1" -type String
@@ -559,7 +560,7 @@ function AudioInstall2 {
 }
 
 function AudioInstall3 {
-    Start-Process -FilePath "C:\Hovercast\Apps\VBCable2\VBCABLE_Setup_x64.exe" -ArgumentList '/S', '-i','-h' -wait
+    Start-Process -FilePath "c:\hovercast\apps\VBCable_CD_PackSetup.exe" -ArgumentList '/S', '-i','-h' -wait
     Set-Service -Name audiosrv -StartupType Automatic
     Start-Service -Name audiosrv
 }
