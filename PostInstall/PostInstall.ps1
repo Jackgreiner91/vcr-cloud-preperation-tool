@@ -26,6 +26,14 @@ Set-ItemProperty $authRegPath "AutoAdminLogon" -Value "1" -type String
 Set-ItemProperty $authRegPath "DefaultPassword" -Value "ControlRoom!" -type String
 Set-ItemProperty $authRegPath "DefaultUsername" -Value "hovercast" -type String
 
+function Set-ChromeAsDefaultBrowser {
+    Add-Type -AssemblyName 'System.Windows.Forms'
+    Start-Process $env:windir\system32\control.exe -ArgumentList '/name Microsoft.DefaultPrograms /page pageDefaultProgram\pageAdvancedSettings?pszAppName=google%20chrome'
+    Sleep 2
+    [System.Windows.Forms.SendKeys]::SendWait("{TAB} {TAB}{TAB} ")
+}
+
+
 
 #Creating Folders and moving script files into System directories
 function setupEnvironment {
@@ -664,6 +672,10 @@ function Install-OBS-with-NDI {
 }#>
     
 
+function Pin-App {
+        ((New-Object -Com Shell.Application).NameSpace('shell:::{4234d49b-0245-4df3-b780-3893943456e1}').Items() | ?{$_.Name -eq chrome}).Verbs() | ?{$_.Name.replace('&','') -match 'An "Taskbar" anheften|Pin to Taskbar'} | %{$_.DoIt()}
+}
+
 
 
 
@@ -737,7 +749,9 @@ $ScripttaskList = @(
 "AudioInstall1";
 "AudioInstall2";
 "AudioInstall3";
+"Set-ChromeAsDefaultBrowser";
 'nginx';
+'Pin-App';
 "Server2019Controller";
 #"GPU-Installer";
 )
