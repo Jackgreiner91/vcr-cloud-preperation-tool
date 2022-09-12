@@ -26,14 +26,10 @@ Set-ItemProperty $authRegPath "AutoAdminLogon" -Value "1" -type String
 Set-ItemProperty $authRegPath "DefaultPassword" -Value "ControlRoom!" -type String
 Set-ItemProperty $authRegPath "DefaultUsername" -Value "hovercast" -type String
 
-function Set-ChromeAsDefaultBrowser {
-    Add-Type -AssemblyName 'System.Windows.Forms'
-    Start-Process $env:windir\system32\control.exe -ArgumentList '/name Microsoft.DefaultPrograms /page pageDefaultProgram\pageAdvancedSettings?pszAppName=google%20chrome'
-    Sleep 2
-    [System.Windows.Forms.SendKeys]::SendWait("{TAB} {TAB}{TAB} ")
-}
-
-
+netsh advfirewall firewall add rule name="TCP Port 4444 in" dir=in action=allow protocol=TCP localport=4444
+netsh advfirewall firewall add rule name="TCP Port 4444 out" dir=out action=allow protocol=TCP localport=4444
+netsh advfirewall firewall add rule name="TCP Port 1935 in" dir=in action=allow protocol=TCP localport=1935
+netsh advfirewall firewall add rule name="TCP Port 1935 out" dir=out action=allow protocol=TCP localport=1935
 
 #Creating Folders and moving script files into System directories
 function setupEnvironment {
@@ -369,6 +365,7 @@ function download-resources {
     Move-Item -path "$path\HovercastTemp\PreInstall\VBCable_CD_PackSetup.exe" -Destination "c:\hovercast\apps\VBCable_CD_PackSetup.exe"
     Move-Item -path "$path\HovercastTemp\PreInstall\autostart.bat" -Destination "c:\hovercast\apps\autostart.bat"
     Move-Item -path "$path\HovercastTemp\PreInstall\SetVol.exe" -Destination "c:\hovercast\apps\SetVol.exe"
+    Move-Item -path "$path\HovercastTemp\PreInstall\QRes.exe" -Destination "c:\hovercast\apps\Qres.exe"
     Move-Item -path "$path\HovercastTemp\PreInstall\template assets" -Destination "c:\users\hovercast\documents"
     Move-Item -path "$path\HovercastTemp\PreInstall\admin" -Destination "c:\users\hovercast\desktop"
     ProgressWriter -Status "Downloading OBS" -PercentComplete $PercentComplete
@@ -399,6 +396,7 @@ function install-windows-features {
     ProgressWriter -Status "Installing vMix25" -PercentComplete $PercentComplete
     Start-Process -FilePath "C:\Hovercast\Apps\vmix25.exe" -ArgumentList '/verysilent' -wait
     ProgressWriter -Status "Installing NDI Tools" -PercentComplete $PercentComplete
+    Start-Process -FilePath "C:\Hovercast\Apps\VideoCom.NDI.Bridge.exe" -ArgumentList '/s' -wait
     ProgressWriter -Status "Cleaning up" -PercentComplete $PercentComplete
     Remove-Item -Path C:\Hovercast\DirectX -force -Recurse 
     }
@@ -508,7 +506,6 @@ function clean-aws {
 function nginx {
     New-Item -Path "C:\Hovercast\Apps\nginx" -ItemType Directory| Out-Null
     Expand-Archive -Path "C:\Users\hovercast\Desktop\HovercastTemp\PreInstall\nginx.zip" -DestinationPath "C:\Hovercast\Apps\nginx"
-    cmd.exe /c  "C:\Hovercast\Apps\nginx\windows firewall\open.firewall.ports_run.as.admin.bat"
     $action = New-ScheduledTaskAction -Execute 'C:\Hovercast\Apps\autostart.bat'
     $trigger =  New-ScheduledTaskTrigger -AtLogOn -User $env:USERNAME 
     Register-ScheduledTask -Action $action -Trigger $trigger -TaskName "startNginX" -RunLevel Highest
@@ -744,9 +741,7 @@ $ScripttaskList = @(
 "AudioInstall1";
 "AudioInstall2";
 "AudioInstall3";
-"Set-ChromeAsDefaultBrowser";
 'nginx';
-'Pin-App';
 "Server2019Controller";
 #"GPU-Installer";
 )
